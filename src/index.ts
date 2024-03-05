@@ -1,22 +1,28 @@
-import express, { Express, Request, Response } from "express";
+import express, { Express } from "express";
 import { createServer } from "node:http";
 import "dotenv/config";
-import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
 import { Server } from "socket.io";
+import { VerifyApiKey } from "./middleware.js";
 
+// Ensure env vars exist
+const DOMAIN = process.env.DOMAIN!;
 const PORT = process.env.PORT!;
 
+// Create server
 const app: Express = express();
 const server = createServer(app);
-const io = new Server(server);
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
-app.get("/", (req: Request, res: Response) => {
-  res.sendFile(join(__dirname, "index.html"));
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+  transports: ["websocket", "polling"],
 });
 
+// Register middleware
+io.use((socket, next) => VerifyApiKey(socket, next));
+
+// Register connection actions
 io.on("connection", (socket) => {
   console.log("user connected");
 
@@ -24,11 +30,12 @@ io.on("connection", (socket) => {
     console.log("user disconnected");
   });
 
-  socket.on("chat message", (msg) => {
-    console.log("message: " + msg);
+  socket.on("message_user", (msg) => {
+    console.log(`Message: ${JSON.stringify(msg)}`);
   });
 });
 
+// Open for connection
 server.listen(PORT, () => {
-  console.log(`server running at http://localhost:${PORT}`);
+  console.log(`Server running at ${DOMAIN}:${PORT}`);
 });
