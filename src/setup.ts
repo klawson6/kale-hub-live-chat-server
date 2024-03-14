@@ -1,10 +1,11 @@
 import { Server, Socket } from "socket.io";
 
 import { onDisconnection } from "./listeners/disconnection.js";
-import { VerifyApiKey } from "./middleware.js";
+import { attachClient, verifyApiKey } from "./middleware.js";
 
 export const registerMiddleware = (io: Server): void => {
-  io.use((socket, next) => VerifyApiKey(socket, next));
+  io.use((socket, next) => verifyApiKey(socket, next));
+  io.use((socket, next) => attachClient(socket, next));
 };
 
 export const registerListeners = (socket: Socket): void => {
@@ -12,7 +13,7 @@ export const registerListeners = (socket: Socket): void => {
     onDisconnection(disconnectReason)
   );
 
-  socket.on("message_user", (msg) => {
+  socket.on("message::user", (msg) => {
     console.log(`Message: ${JSON.stringify(msg)}`);
   });
 };

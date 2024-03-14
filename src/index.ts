@@ -26,7 +26,7 @@ const io = new Server(server, {
 // Register middleware
 registerMiddleware(io);
 
-// Register connection actions
+// Register listeners
 io.on("connection", (socket) => {
   onConnection(socket);
   registerListeners(socket);
