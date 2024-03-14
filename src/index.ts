@@ -1,8 +1,12 @@
-import express, { Express } from "express";
-import { createServer } from "node:http";
 import "dotenv/config";
+
+import { createServer } from "node:http";
+
+import express, { Express } from "express";
 import { Server } from "socket.io";
-import { VerifyApiKey } from "./middleware.js";
+
+import { onConnection } from "./listeners/connection.js";
+import { registerListeners, registerMiddleware } from "./setup.js";
 
 // Ensure env vars exist
 const DOMAIN = process.env.DOMAIN!;
@@ -20,19 +24,12 @@ const io = new Server(server, {
 });
 
 // Register middleware
-io.use((socket, next) => VerifyApiKey(socket, next));
+registerMiddleware(io);
 
 // Register connection actions
 io.on("connection", (socket) => {
-  console.log("user connected");
-
-  socket.on("disconnect", () => {
-    console.log("user disconnected");
-  });
-
-  socket.on("message_user", (msg) => {
-    console.log(`Message: ${JSON.stringify(msg)}`);
-  });
+  onConnection(socket);
+  registerListeners(socket);
 });
 
 // Open for connection
