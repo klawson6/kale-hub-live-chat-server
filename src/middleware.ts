@@ -7,13 +7,14 @@ const API_KEY = process.env.LIVE_CHAT_API_KEY!;
 
 export const verifyApiKey = (socket: Socket, next: MiddlewareNext) => {
   const apiKey = socket.handshake.auth.apiKey;
-  if (apiKey === API_KEY) next();
-  else next(new Error("Invalid API key, connection rejected"));
+  apiKey === API_KEY
+    ? next()
+    : next(new Error("Invalid API key, connection rejected"));
 };
 
 export const attachClient = (socket: Socket, next: MiddlewareNext) => {
-  const jwt = socket.handshake.auth.jwt;
-  if (!jwt) next(new Error("Client credentials invalid"));
-  // const decodedJwt = jwt; // TODO
-  // socket.clientId = "clientId"; // TODO get from jwt
+  const clientId = socket.handshake.auth.clientId;
+  if (!clientId) next(new Error("Client ID not provided, connection rejected"));
+  socket.data.clientId = clientId;
+  next();
 };

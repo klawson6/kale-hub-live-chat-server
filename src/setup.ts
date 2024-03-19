@@ -1,6 +1,7 @@
 import { Server, Socket } from "socket.io";
 
 import { onDisconnection } from "./listeners/disconnection.js";
+import { MessageEvents, onMessageUser } from "./listeners/message.js";
 import { attachClient, verifyApiKey } from "./middleware.js";
 
 export const registerMiddleware = (io: Server): void => {
@@ -13,7 +14,7 @@ export const registerListeners = (socket: Socket): void => {
     onDisconnection(disconnectReason)
   );
 
-  socket.on("message::user", (msg) => {
-    console.log(`Message: ${JSON.stringify(msg)}`);
-  });
+  socket.on(MessageEvents.MESSAGE_USER, (message) =>
+    onMessageUser(socket, message)
+  );
 };
